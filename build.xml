@@ -1,11 +1,13 @@
 <project name="AndroidMetaDao" default="dist" basedir=".">
+  <property name="project"  value="android-metadao"/>
+  <property name="version"  value="1.0.0"/>
     <description>
-        Build file for AndroidMetaDao
+        Build file for project ${project}
     </description>
   <!-- set global properties for this build -->
-  <property name="src" location="src"/>
+  <property name="src" location="src/main/java"/>
   <property name="build" location="build"/>
-  <property name="dist"  location="dist"/>
+  <property name="dist"  location="target"/>
 
   <target name="init">
     <!-- Create the time stamp -->
@@ -29,13 +31,11 @@
   <target name="dist" depends="compile"
         description="generate the distribution" >
     <!-- Create the distribution directory -->
-    <mkdir dir="${dist}/lib"/>
+    <!--<mkdir dir="${dist}/lib"/>-->
+    <mkdir dir="${dist}"/>
 
-    <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
-	<!--
-    <jar jarfile="${dist}/lib/SmsCommandline-${DSTAMP}.jar" basedir="${build}"/>
-	-->
-    <jar jarfile="${dist}/lib/android-metadao.jar" basedir="${build}"/>
+    <!--<jar jarfile="${dist}/lib/metadao.jar" basedir="${build}"/>-->
+    <jar jarfile="${dist}/${project}-${version}.jar" basedir="${build}"/>
   </target>
 
   <target name="clean"
