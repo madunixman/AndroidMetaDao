@@ -23,7 +23,6 @@
         </dependency>
     </dependencies>
 
-
 <!-- for distribution of artifact into the repo -->
 <!-- ****************************************** -->
 <distributionManagement>
