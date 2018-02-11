@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.lulli.android</groupId>
     <artifactId>android-metadao</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <!--<packaging>apk</packaging>-->
     <packaging>jar</packaging>
 
