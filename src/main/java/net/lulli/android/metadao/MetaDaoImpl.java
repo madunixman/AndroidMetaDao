@@ -3,9 +3,11 @@ package net.lulli.android.metadao;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
-import net.lulli.android.metadao.model.Dao;
-import net.lulli.android.metadao.model.MetaDto;
+import net.lulli.android.metadao.model.MetaDtoImpl;
 import net.lulli.android.metadao.model.SQLDialect;
+import net.lulli.metadao.api.MetaDao;
+import net.lulli.metadao.api.MetaDto;
+import net.lulli.metadao.api.WheresMap;
 
 import java.sql.ResultSet;
 import java.util.*;
@@ -18,16 +20,38 @@ import java.util.*;
  * 3) Connection -> SQLiteDatabase
  */
 
-public class MetaDao extends Dao
+public class MetaDaoImpl implements MetaDao<SQLiteDatabase>
 {
     ALog log = new ALog(this.getClass().getName());
 
-    public MetaDao()
+    protected String TABLE_NAME;
+    protected String SQL_DIALECT = SQLDialect.STANDARD;
+    private String idField;
+
+    public String getIdField()
+    {
+        return idField;
+    }
+
+    public String getDialect()
+    {
+
+        return SQL_DIALECT;
+    }
+
+    public void setDialect(String sqlDialect)
+    {
+
+        SQL_DIALECT = sqlDialect;
+    }
+
+
+    public MetaDaoImpl()
     {
         //dbConnectionmanager  = DbManager.getInstance();
     }
 
-    public MetaDao(String tableName)
+    public MetaDaoImpl(String tableName)
     {
         this.TABLE_NAME = tableName;
         //dbConnectionmanager  = DbManager.getInstance();
@@ -39,7 +63,14 @@ public class MetaDao extends Dao
     }
 
 
-    public String insert(MetaDto dto, SQLiteDatabase dbConnection)
+    public Integer insert(MetaDto dto, SQLiteDatabase dbConnection)
+    {
+        String retValue = insertLegacy(dto, dbConnection);
+        return Integer.valueOf(retValue);
+    }
+
+
+    public String insertLegacy(MetaDto dto, SQLiteDatabase dbConnection)
     {
         this.TABLE_NAME = dto.getTableName();
         log.debug("BEGIN insert()");
@@ -77,12 +108,7 @@ public class MetaDao extends Dao
             }
         }
 
-        if (dto.isChronology())
-        {
-            sql = sql +
-                    ",updated," +
-                    "created";
-        }
+
         sql = sql + ") values ( ";
         boolean isFirstPlaceHolder = true;
         while (keysIteratorSymbols.hasNext())
@@ -96,11 +122,6 @@ public class MetaDao extends Dao
             {
                 sql = sql + ",? ";
             }
-        }
-        if (dto.isChronology())
-        {
-            sql = sql +
-                    ",now(), now()";
         }
         sql = sql +
                 ")";
@@ -203,11 +224,21 @@ if (cursor.moveToFirst()) {
 		 
 	 }while (cursor.moveToNext());
 	*/
-    public void update(MetaDto dto, Hashtable wheres, SQLiteDatabase dbConnection)
+
+
+    //TODO return number of updated records
+    public Integer update(MetaDto dto, WheresMap wheres, SQLiteDatabase dbConnection)
+    {
+        updateLegacy(dto, wheres, dbConnection);
+        return new Integer(0);
+
+    }
+
+    private void updateLegacy(MetaDto dto, WheresMap wheres, SQLiteDatabase dbConnection)
     {
         this.TABLE_NAME = dto.getTableName();
         log.debug("BEGIN insert()");
-        MetaDto requestDto = (MetaDto) dto;
+        MetaDtoImpl requestDto = (MetaDtoImpl) dto;
         //String uuid = clienteDto.getId();
         String primaryKey = dto.getIdField();
         //String pKeyValue = dto.getId();
@@ -233,17 +264,12 @@ if (cursor.moveToFirst()) {
                 {
                     sql = sql + " " + k + " =? "; // Inizia senza la virgola
                     isFirst = false;
-                }
-                else
+                } else
                 {
                     sql = sql + ", " + k + " =? ";// Inizia con la virgola
                 }
             }
             index++;
-        }
-        if (dto.isChronology())
-        {
-            sql = sql + ", updated = now() ";
         }
         index = 1;
         Set<String> whereKeysP1 = wheres.keySet();
@@ -314,17 +340,17 @@ if (cursor.moveToFirst()) {
     }
 
 
-    public List select(MetaDto requestDto, Hashtable wheres, boolean definedAttributes, SQLiteDatabase dbConnection)
+    public List select(MetaDtoImpl requestDto, WheresMap wheres, boolean definedAttributes, SQLiteDatabase dbConnection)
     {
         this.TABLE_NAME = requestDto.getTableName();
         List listOfDto = new ArrayList();
         SQLiteStatement pstmt = null;
-        MetaDto responseDto = null;
+        MetaDtoImpl responseDto = null;
         ResultSet rs;
         try
         {
             String sqlString = "SELECT * FROM " + TABLE_NAME + " WHERE ";
-            Enumeration whereFields = wheres.keys();
+            Enumeration whereFields = ((Hashtable) wheres).keys();
             int idx = 0;
             while (whereFields.hasMoreElements())
             {
@@ -351,7 +377,7 @@ if (cursor.moveToFirst()) {
 
             int paramIdx = 1;
             String whereValue;
-            Enumeration whereFields_2ndRound = wheres.keys();
+            Enumeration whereFields_2ndRound = ((Hashtable) wheres).keys();
             while (whereFields_2ndRound.hasMoreElements())
             {
                 try
@@ -379,7 +405,7 @@ if (cursor.moveToFirst()) {
                 do
                 {
                     log.debug("rs.next()");
-                    responseDto = new MetaDto();
+                    responseDto = new MetaDtoImpl();
                     Set<String> keys;
                     if (definedAttributes)
                     {
@@ -390,8 +416,8 @@ if (cursor.moveToFirst()) {
 
                         String columnNames[] = cursor.getColumnNames();
                         keys = new TreeSet<String>();
-							/*for( int i = 1; i <= md.getColumnCount(); i++ ){
-								keys.add(md.getColumnLabel(i));
+                            /*for( int i = 1; i <= md.getColumnCount(); i++ ){
+                                keys.add(md.getColumnLabel(i));
 								log.debug("FIELD_NAME:[" +md.getColumnLabel(i) +"]");
 							}*/
                         for (String colName : columnNames)
@@ -434,12 +460,12 @@ if (cursor.moveToFirst()) {
         return listOfDto;
     }
 
-    public MetaDto descTable(String tableName, SQLiteDatabase dbConnection)
+    public MetaDtoImpl descTable(String tableName, SQLiteDatabase dbConnection)
     {
         this.TABLE_NAME = tableName;
         List listOfDto = new ArrayList();
         SQLiteStatement pstmt = null;
-        MetaDto responseDto = null;
+        MetaDtoImpl responseDto = null;
         ResultSet rs;
         try
         {
@@ -458,7 +484,7 @@ if (cursor.moveToFirst()) {
                 do
                 {
                     log.debug("rs.next()");
-                    responseDto = new MetaDto();
+                    responseDto = new MetaDtoImpl();
                     Set<String> keys;
 
                     String columnNames[] = cursor.getColumnNames();
@@ -467,8 +493,8 @@ if (cursor.moveToFirst()) {
                     {
                         keys.add(colName);
                     }
-				 		/*
-						ResultSetMetaData md = rs.getMetaData() ;
+                         /*
+                        ResultSetMetaData md = rs.getMetaData() ;
 				 		keys = new TreeSet<String>(); 
 						for( int i = 1; i <= md.getColumnCount(); i++ ){
 							keys.add(md.getColumnLabel(i));
@@ -509,19 +535,23 @@ if (cursor.moveToFirst()) {
     }
 
 
-    public String selectIdWhere(MetaDto requestDto, Hashtable wheres, SQLiteDatabase dbConnection, boolean definedAttributes, Integer tadRows)
+    public String selectIdWhere(MetaDto requestDto,
+                                WheresMap wheres,
+                                SQLiteDatabase dbConnection,
+                                boolean definedAttributes,
+                                Integer tadRows)
     {
         this.TABLE_NAME = requestDto.getTableName();
         List listOfDto = new ArrayList();
         SQLiteStatement pstmt = null;
-        MetaDto responseDto = null;
+        MetaDtoImpl responseDto = null;
         ResultSet rs;
         String id = null;
         try
         {
             //conn  = dbConnectionmanager.getConnection();
             String sqlString = "SELECT id FROM " + TABLE_NAME + " WHERE ";
-            Enumeration whereFields = wheres.keys();
+            Enumeration whereFields = ((Hashtable) wheres).keys();
             int idx = 0;
             while (whereFields.hasMoreElements())
             {
@@ -551,7 +581,7 @@ if (cursor.moveToFirst()) {
             pstmt = dbConnection.compileStatement(sqlString);
             int paramIdx = 1;
             String whereValue;
-            Enumeration whereFields_2ndRound = wheres.keys();
+            Enumeration whereFields_2ndRound = ((Hashtable) wheres).keys();
             while (whereFields_2ndRound.hasMoreElements())
             {
                 try
@@ -602,20 +632,32 @@ if (cursor.moveToFirst()) {
         return id;
     }
 
+    public Integer selectCount(MetaDto requestDto,
+                               WheresMap wheres,
+                               SQLiteDatabase dbConnection,
+                               boolean definedAttributes)
+    {
+        String retValue = selectCountLegacy(requestDto, wheres,
+                dbConnection, definedAttributes);
+        return Integer.valueOf(retValue);
+    }
 
-    public String selectCount(MetaDto requestDto, Hashtable wheres, SQLiteDatabase dbConnection, boolean definedAttributes)
+    private String selectCountLegacy(MetaDto requestDto,
+                                     WheresMap wheres,
+                                     SQLiteDatabase dbConnection,
+                                     boolean definedAttributes)
     {
         this.TABLE_NAME = requestDto.getTableName();
         List listOfDto = new ArrayList();
         SQLiteStatement pstmt = null;
-        MetaDto responseDto = null;
+        MetaDtoImpl responseDto = null;
         ResultSet rs;
         String CONTEGGIO = "";
         try
         {
             //conn  = dbConnectionmanager.getConnection();
             String sqlString = "SELECT count(*) as CONTEGGIO FROM " + TABLE_NAME + " WHERE ";
-            Enumeration whereFields = wheres.keys();
+            Enumeration whereFields = ((Hashtable) wheres).keys();
             int idx = 0;
             while (whereFields.hasMoreElements())
             {
@@ -641,7 +683,7 @@ if (cursor.moveToFirst()) {
             pstmt = dbConnection.compileStatement(sqlString);
             int paramIdx = 1;
             String whereValue;
-            Enumeration whereFields_2ndRound = wheres.keys();
+            Enumeration whereFields_2ndRound = ((Hashtable) wheres).keys();
             while (whereFields_2ndRound.hasMoreElements())
             {
                 try
@@ -691,7 +733,9 @@ if (cursor.moveToFirst()) {
     }
 
 
-    public List search(MetaDto requestDto, Hashtable wheres, SQLiteDatabase dbConnection, boolean definedAttributes, Integer resultRows)
+    public List search(MetaDtoImpl requestDto,
+                       WheresMap wheres,
+                       SQLiteDatabase dbConnection, boolean definedAttributes, Integer resultRows)
     {
         List listOfDto = null;
         String sqlDialect = this.SQL_DIALECT;
@@ -713,12 +757,12 @@ if (cursor.moveToFirst()) {
         return listOfDto;
     }
 
-    private List searchSQLite(MetaDto requestDto, Hashtable wheres, SQLiteDatabase dbConnection, boolean definedAttributes, Integer resultRows)
+    private List searchSQLite(MetaDtoImpl requestDto, WheresMap wheres, SQLiteDatabase dbConnection, boolean definedAttributes, Integer resultRows)
     {
         this.TABLE_NAME = requestDto.getTableName();
         List listOfDto = new ArrayList();
         SQLiteStatement pstmt = null;
-        MetaDto responseDto = null;
+        MetaDtoImpl responseDto = null;
         ResultSet rs;
         try
         {
@@ -728,7 +772,7 @@ if (cursor.moveToFirst()) {
             if (null != wheres)
             {
                 sqlString += " WHERE ";
-                Enumeration whereFields = wheres.keys();
+                Enumeration whereFields = ((Hashtable) wheres).keys();
                 //WAS_OK::int idx=0;
                 while (whereFields.hasMoreElements())
                 {
@@ -768,7 +812,7 @@ if (cursor.moveToFirst()) {
 
             if (null != wheres)
             {
-                Enumeration whereFields_2ndRound = wheres.keys();
+                Enumeration whereFields_2ndRound = ((Hashtable) wheres).keys();
                 while (whereFields_2ndRound.hasMoreElements())
                 {
                     try
@@ -796,7 +840,7 @@ if (cursor.moveToFirst()) {
                 do
                 {
                     log.debug("rs.next()");
-                    responseDto = new MetaDto();
+                    responseDto = new MetaDtoImpl();
                     Set<String> keys;
                     if (definedAttributes)
                     {
@@ -819,8 +863,8 @@ if (cursor.moveToFirst()) {
                     while (keysIterator2.hasNext())
                     {
                         key = keysIterator2.next();
-					 /*
-					 value = rs.getString(key);
+                     /*
+                     value = rs.getString(key);
 					 responseDto.put(key, rs.getString(key));
 					 */
                         int position = cursor.getColumnIndex(key);
@@ -895,7 +939,7 @@ if (cursor.moveToFirst()) {
 
         List<MetaDto> listOfDto = new ArrayList<MetaDto>();
         SQLiteStatement pstmt = null;
-        MetaDto responseDto = null;
+        MetaDtoImpl responseDto = null;
         ResultSet rs;
         try
         {
@@ -913,17 +957,12 @@ if (cursor.moveToFirst()) {
                 do
                 {
                     log.debug("rs.next()");
-                    responseDto = new MetaDto();
+                    responseDto = new MetaDtoImpl();
                     Set<String> keys; //NO DUPLICATES
                     String columnNames[] = cursor.getColumnNames();
                     //ResultSetMetaData md = rs.getMetaData() ;
                     keys = new TreeSet<String>();
-				
-			 		/* WAS::
-			 		for( int i = 1; i <= md.getColumnCount(); i++ ){
-						keys.add(md.getColumnLabel(i));
-					}
-			 		*/
+
                     for (String colName : columnNames)
                     {
                         keys.add(colName);
@@ -966,9 +1005,9 @@ if (cursor.moveToFirst()) {
     public void execute(String sqlInputString, SQLiteDatabase dbConnection)
     {
 
-        List<MetaDto> listOfDto = new ArrayList<MetaDto>();
+        List<MetaDtoImpl> listOfDto = new ArrayList<MetaDtoImpl>();
         SQLiteStatement pstmt = null;
-        MetaDto responseDto = null;
+        MetaDtoImpl responseDto = null;
         ResultSet rs;
         try
         {
@@ -996,11 +1035,19 @@ if (cursor.moveToFirst()) {
         }
     }
 
-    public void delete(MetaDto dto, Hashtable wheres, SQLiteDatabase dbConnection)
+    //TODO return number of deleted records
+
+    public Integer delete(MetaDto dto, WheresMap wheres, SQLiteDatabase dbConnection)
+    {
+        deleteLegacy(dto, wheres, dbConnection);
+        return new Integer(0);
+    }
+
+    void deleteLegacy(MetaDto dto, WheresMap wheres, SQLiteDatabase dbConnection)
     {
         this.TABLE_NAME = dto.getTableName();
         log.debug("BEGIN insert()");
-        MetaDto requestDto = (MetaDto) dto;
+        MetaDtoImpl requestDto = (MetaDtoImpl) dto;
         //String uuid = clienteDto.getId();
         String primaryKey = dto.getIdField();
         //String pKeyValue = dto.getId();

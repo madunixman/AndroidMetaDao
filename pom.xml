@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.lulli.android</groupId>
     <artifactId>android-metadao</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.4-SNAPSHOT</version>
     <!--<packaging>apk</packaging>-->
     <packaging>jar</packaging>
 
@@ -28,6 +28,12 @@
             <version>4.1.1.4</version>
             <scope>provided</scope>
         </dependency>
+  <dependency>
+    <groupId>net.lulli</groupId>
+    <artifactId>metadao-api</artifactId>
+    <version>${project.version}</version>
+  </dependency>
+
     </dependencies>
 
 <!-- for distribution of artifact into the repo -->

@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import java.io.File;
 
-public class DbConnectionManager extends SQLiteOpenHelper
+public class DbConnectionManagerImpl extends SQLiteOpenHelper
 {
 
     public static final String DATABASE_NAME = "__DEFAULT__.db";
@@ -16,7 +16,7 @@ public class DbConnectionManager extends SQLiteOpenHelper
 
     //ANDROID
     //----------------------------------------------------------------
-    public DbConnectionManager(Context context, String DATABASE_NAME)
+    public DbConnectionManagerImpl(Context context, String DATABASE_NAME)
     {
         //log.debug("BEGIN getConnection()");
         //File dbpath = context.getDatabasePath(DATABASE_NAME);
@@ -27,7 +27,7 @@ public class DbConnectionManager extends SQLiteOpenHelper
         log.debug("dbpath=[" + dbpath + "]");
     }
 
-    public DbConnectionManager(Context context)
+    public DbConnectionManagerImpl(Context context)
     {
         super(context, DATABASE_NAME, null, 1);
         //WARN::

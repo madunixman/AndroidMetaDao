@@ -1,18 +1,50 @@
 package net.lulli.android.metadao.model;
 
+import net.lulli.metadao.api.MetaDto;
+import java.util.LinkedHashMap;
 
-public class MetaDto extends Dto implements Cloneable
+public class MetaDtoImpl extends LinkedHashMap implements MetaDto
 {
-    String tableName;
-    String idField;
-    String recordType;
+    private String tableName;
+    private String idField;
+    private String recordType;
     boolean chronology = false;
 
-    public static MetaDto getNewInstance(String tableNameParameter)
+    public MetaDtoImpl getNewInstance(String tableNameParameter)
     {
-        MetaDto newInstance = new MetaDto();
+        MetaDtoImpl newInstance = new MetaDtoImpl();
         newInstance.setTableName(tableNameParameter);
         return newInstance;
+    }
+
+    public static MetaDtoImpl of(String tableNameParameter)
+    {
+        MetaDtoImpl newInstance = new MetaDtoImpl();
+        newInstance.setTableName(tableNameParameter);
+        return newInstance;
+    }
+
+    public String get(String key)
+    {
+        Object value = this.get(key);
+        if (null != value)
+        {
+            return value.toString();
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    public void remove(String key)
+    {
+        this.remove(key);
+    }
+
+    public void put(String key, String value)
+    {
+        this.put(key,value);
     }
 
     public String getTableName()
