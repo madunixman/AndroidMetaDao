@@ -1,11 +1,8 @@
-package net.lulli.android.metadao.model;
+package net.lulli.android.metadao;
 
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import net.lulli.android.metadao.ALog;
-import net.lulli.android.metadao.DbConnectionManagerImpl;
-import net.lulli.android.metadao.MetaDaoImpl;
 import net.lulli.metadao.api.Dialect;
 import net.lulli.metadao.api.MetaDto;
 import net.lulli.metadao.api.MetaPersistenceManager;

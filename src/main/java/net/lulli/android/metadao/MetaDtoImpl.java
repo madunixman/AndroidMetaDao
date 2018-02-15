@@ -1,4 +1,4 @@
-package net.lulli.android.metadao.model;
+package net.lulli.android.metadao;
 
 import net.lulli.metadao.api.MetaDto;
 import java.util.LinkedHashMap;

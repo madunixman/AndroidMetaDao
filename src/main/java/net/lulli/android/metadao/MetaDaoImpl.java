@@ -3,8 +3,6 @@ package net.lulli.android.metadao;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
-import net.lulli.android.metadao.model.MetaDtoImpl;
-import net.lulli.android.metadao.model.SQLDialect;
 import net.lulli.metadao.api.MetaDao;
 import net.lulli.metadao.api.MetaDto;
 import net.lulli.metadao.api.WheresMap;
@@ -16,7 +14,7 @@ import java.util.*;
  * JDBC TO ANDROID:
  * <p>
  * 1) PreparedStatement -> android.database.sqlite.SQLiteStatement;
- * 2)  Connection conn.prepareStatement(sql);  -> SQLiteDatabase dbConnection dbConnection.compileStatement(sql);
+ * 2) Connection conn.prepareStatement(sql);  -> SQLiteDatabase dbConnection dbConnection.compileStatement(sql);
  * 3) Connection -> SQLiteDatabase
  */
 

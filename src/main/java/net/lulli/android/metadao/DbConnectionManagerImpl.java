@@ -13,16 +13,9 @@ public class DbConnectionManagerImpl extends SQLiteOpenHelper
 
     ALog log = new ALog(this.getClass().getName());
 
-
-    //ANDROID
-    //----------------------------------------------------------------
     public DbConnectionManagerImpl(Context context, String DATABASE_NAME)
     {
-        //log.debug("BEGIN getConnection()");
-        //File dbpath = context.getDatabasePath(DATABASE_NAME);
-        //context.getDatabasePath(DATABASE_NAME);
         super(context, DATABASE_NAME, null, 1);
-        //WARN::
         File dbpath = context.getDatabasePath(DATABASE_NAME);
         log.debug("dbpath=[" + dbpath + "]");
     }
@@ -30,7 +23,6 @@ public class DbConnectionManagerImpl extends SQLiteOpenHelper
     public DbConnectionManagerImpl(Context context)
     {
         super(context, DATABASE_NAME, null, 1);
-        //WARN::
         File dbpath = context.getDatabasePath(DATABASE_NAME);
         log.debug("dbpath=[" + dbpath + "]");
     }
