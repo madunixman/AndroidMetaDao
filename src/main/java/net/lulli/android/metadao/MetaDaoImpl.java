@@ -387,7 +387,8 @@ if (cursor.moveToFirst()) {
                     } else
                     {
                         whereValue = wheres.get(where).toString();
-                        pstmt.bindString(paramIdx, whereValue);
+                        if (null != pstmt)
+                            pstmt.bindString(paramIdx, whereValue);
                         paramIdx++;
                     }
                 } catch (Exception e)
@@ -740,13 +741,7 @@ if (cursor.moveToFirst()) {
         log.debug("BEGIN search()");
         try
         {
-            if (sqlDialect.equals(SQLDialect.STANDARD))
-            {
-                listOfDto = searchSQLite(requestDto, wheres, dbConnection, definedAttributes, resultRows);
-            } else if (sqlDialect.equals(SQLDialect.SQLITE))
-            {
-                listOfDto = searchSQLite(requestDto, wheres, dbConnection, definedAttributes, resultRows);
-            }
+            listOfDto = searchSQLite(requestDto, wheres, dbConnection, definedAttributes, resultRows);
             log.debug("END search()");
         } catch (Exception e)
         {
@@ -755,6 +750,8 @@ if (cursor.moveToFirst()) {
         return listOfDto;
     }
 
+    //TODO : who opens the pstmt = dbConnection.compileStatement(sql);
+    @Deprecated
     private List searchSQLite(MetaDtoImpl requestDto, WheresMap wheres, SQLiteDatabase dbConnection, boolean definedAttributes, Integer resultRows)
     {
         this.TABLE_NAME = requestDto.getTableName();
@@ -764,7 +761,6 @@ if (cursor.moveToFirst()) {
         ResultSet rs;
         try
         {
-            //conn  = dbConnectionmanager.getConnection();
             String sqlString = "SELECT * FROM " + TABLE_NAME;
             int idx = 0;
             if (null != wheres)
@@ -804,7 +800,6 @@ if (cursor.moveToFirst()) {
                 }
             }
             log.debug("sqlString = [" + sqlString + "]");
-            //pstmt = dbConnection.compileStatement(sqlString);
             int paramIdx = 1;
             String whereValue;
 
@@ -821,6 +816,7 @@ if (cursor.moveToFirst()) {
                             log.debug("skipping null value for field: [" + where + "]");
                         } else
                         {
+                            pstmt = dbConnection.compileStatement(sqlString);
                             whereValue = wheres.get(where).toString();
                             pstmt.bindString(paramIdx, whereValue);
                             paramIdx++;
@@ -831,7 +827,6 @@ if (cursor.moveToFirst()) {
                     }
                 }
             }
-            //rs = pstmt.executeQuery();
             Cursor cursor = dbConnection.rawQuery(sqlString, null);
             if (cursor.moveToFirst())
             {
@@ -984,18 +979,6 @@ if (cursor.moveToFirst()) {
         } catch (Exception e)
         {
             log.error(e.getMessage());
-        } finally
-        {
-            try
-            {
-                if (null != pstmt)
-                {
-                    pstmt.close();
-                }
-            } catch (Exception e)
-            {
-                log.error(e.getMessage());
-            }
         }
         return listOfDto;
     }
@@ -1004,7 +987,7 @@ if (cursor.moveToFirst()) {
     {
 
         List<MetaDtoImpl> listOfDto = new ArrayList<MetaDtoImpl>();
-        SQLiteStatement pstmt = null;
+
         MetaDtoImpl responseDto = null;
         ResultSet rs;
         try
@@ -1018,18 +1001,6 @@ if (cursor.moveToFirst()) {
         } catch (Exception e)
         {
             log.error(e.getMessage());
-        } finally
-        {
-            try
-            {
-                if (null != pstmt)
-                {
-                    pstmt.close();
-                }
-            } catch (Exception e)
-            {
-                log.error(e.getMessage());
-            }
         }
     }
 

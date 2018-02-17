@@ -69,7 +69,7 @@ public class DbConnectionManagerImpl extends SQLiteOpenHelper
             }
         } catch (Exception e)
         {
-            e.printStackTrace();
+            log.error(e);
         }
     }
 
@@ -83,7 +83,7 @@ public class DbConnectionManagerImpl extends SQLiteOpenHelper
             }
         } catch (Exception e)
         {
-            e.printStackTrace();
+            log.error(e);
         }
     }
 }

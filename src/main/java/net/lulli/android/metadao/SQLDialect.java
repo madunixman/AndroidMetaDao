@@ -4,6 +4,6 @@ import net.lulli.metadao.api.Dialect;
 
 public class SQLDialect implements Dialect
 {
-    public static String STANDARD = "SQLite";
-    public static String SQLITE = "SQLite";
+    public static final String STANDARD = "SQLite";
+    public static final String SQLITE = "SQLite";
 }

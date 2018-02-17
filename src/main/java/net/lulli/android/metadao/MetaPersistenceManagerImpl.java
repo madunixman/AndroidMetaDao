@@ -3,7 +3,6 @@ package net.lulli.android.metadao;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import net.lulli.metadao.api.Dialect;
 import net.lulli.metadao.api.MetaDto;
 import net.lulli.metadao.api.MetaPersistenceManager;
 import net.lulli.metadao.api.WheresMap;
@@ -184,48 +183,56 @@ public class MetaPersistenceManagerImpl extends SQLDialect implements MetaPersis
         try
         {
             dao = new MetaDaoImpl();
-            conn = dbManager.getConnection();
-            Integer presenti = dao.selectCount(dto, wheres, conn, false);
-            log.trace("TABLE:" + dto.getTableName());
-            //isPresent = pm.isPresentByField(tableName, id_Azienda, codField, codValue);
-            log.trace("[1]: CHECK PRESENCE");
-            if (presenti > 0)
+            if (null != dao)
             {
-                //Deve fare update
-
-                ///////////
-                if (dto.containsKey(null))
+                conn = dbManager.getConnection();
+                Integer presenti = dao.selectCount(dto, wheres, conn, false);
+                log.trace("TABLE:" + dto.getTableName());
+                //isPresent = pm.isPresentByField(tableName, id_Azienda, codField, codValue);
+                log.trace("[1]: CHECK PRESENCE");
+                if (presenti > 0)
                 {
-                    dto.remove(null);
-                    log.trace("METADAO_updateWhere: REMOVE_NULL");
+                    //Deve fare update
+
+                    ///////////
+                    if (dto.containsKey(null))
+                    {
+                        dto.remove(null);
+                        log.trace("METADAO_updateWhere: REMOVE_NULL");
+                    }
+                    //////////
+                    dao.update(dto, wheres, conn);
+                } else
+                {
+                    //3 Se non presente inserisce
+                    //pm.insert(dto);
+                    insert(dto);
+                    log.trace("[3]: INSERT");
                 }
-                //////////
-                dao.update(dto, wheres, conn);
-            } else
-            {
-                //3 Se non presente inserisce
-                //pm.insert(dto);
-                insert(dto);
-                log.trace("[3]: INSERT");
+                //4 restituisce id inserito
             }
-            //4 restituisce id inserito
         } catch (Exception e)
         {
             log.error("Insert/Update FALLITA" + e);
         }
-        try
+        if (null != dao)
         {
-            //pm.select
-            id = dao.selectIdWhere(dto, wheres, conn, false, 1);
-        } catch (Exception e)
+            try
+            {
+                id = dao.selectIdWhere(dto, wheres, conn, false, 1);
+            } catch (Exception e)
+            {
+                log.error("Cannot decode record from table=[" + tableName + "]");
+            } finally
+            {
+                dbManager.releaseConnection(conn);
+            }
+            log.trace("[4]: RETURN_ID");
+            return id;
+        } else
         {
-            log.error("Cannot decode record from table=[" + tableName + "]");
-        } finally
-        {
-            dbManager.releaseConnection(conn);
+            return "0";
         }
-        log.trace("[4]: RETURN_ID");
-        return id;
     }
 
 
@@ -240,7 +247,7 @@ public class MetaPersistenceManagerImpl extends SQLDialect implements MetaPersis
         {
             conn = dbManager.getConnection();
             dao = new MetaDaoImpl();
-            count = Integer.valueOf(dao.selectCount(requestDto, wheres, conn, definedAttributes));
+            count = dao.selectCount(requestDto, wheres, conn, definedAttributes);
         } catch (Exception e)
         {
             log.error("" + e);
@@ -254,14 +261,7 @@ public class MetaPersistenceManagerImpl extends SQLDialect implements MetaPersis
         List<String> fieldList = null;
         String sqlDialect = this.getSQLDialect();
         log.trace("Detected SQLDialect:[" + sqlDialect + "]");
-
-        if (sqlDialect.equals(Dialect.STANDARD))
-        {
-            fieldList = descTableMySQL(tableName);
-        } else if (sqlDialect.equals(Dialect.SQLITE))
-        {
-            fieldList = descTableMySQL(tableName);
-        }
+        fieldList = descTableMySQL(tableName);
         return fieldList;
     }
 

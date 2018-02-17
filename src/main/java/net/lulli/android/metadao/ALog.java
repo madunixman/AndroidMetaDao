@@ -6,7 +6,7 @@ public class ALog
 {
     public static final String APP_TAG = "METADAO";
 
-    public String logTag = APP_TAG;
+    private String logTag = APP_TAG;
 
     public ALog(String logTag)
     {
@@ -37,6 +37,12 @@ public class ALog
     public void info(String s)
     {
         Log.i(s, logTag);
+    }
+
+
+    public void setLogTag(String tagName)
+    {
+        this.logTag = tagName;
     }
 
 }
